@@ -23,14 +23,25 @@ def aboutus(request):
 
 @login_required
 def orders(request):
-    orders = Order.objects.filter(user=request.user,status="pending").order_by("-created_at")
+    if request.user.username == 'admin':
+        orders = Order.objects.filter(status="pending").order_by("-created_at")
+    else:
+        orders = Order.objects.filter(user=request.user,status="pending").order_by("-created_at")
     return render(request, 'orders.html', {"orders": orders})
 
 @login_required
 def history(request):
-    orders = Order.objects.filter(user=request.user).exclude(status="pending").order_by("-created_at")
+    if request.user.username == 'admin':
+        orders = Order.objects.all().exclude(status="pending").order_by("-created_at")
+    else:
+        orders = Order.objects.filter(user=request.user).exclude(status="pending").order_by("-created_at")
+    
+    # orders = Order.objects.filter(user=request.user).exclude(status="pending").order_by("-created_at")
+    
     return render(request, 'history.html',  {"orders": orders})
 
+
+@login_required
 def cancel_order(request, id):
     order = Order.objects.get(id=id, user=request.user)
     order.status = "canceled"
@@ -115,10 +126,12 @@ def coffee(request):
         return render(request, 'coffee.html')
     return render(request, 'coffee.html')
 
+
+@login_required
 def add_coffee(request):
     return render(request, 'add_coffee.html')
 
-
+@login_required
 def coffee_form_add_update(request, id=0):
     try:
         if request.method == 'GET':
@@ -146,20 +159,26 @@ def coffee_form_add_update(request, id=0):
         return redirect(handler500)
     
 
-
+@login_required
 def delete_coffee(request, id):
     try:
         if request.method == 'GET':
             meal = Coffee.objects.get(id=id)
             meal.delete()
-            return render(request, 'coffee.html')
+            return redirect('coffee')
         if request.method == 'POST':
             return render(request, 'coffee.html')
     except Exception:
         return redirect(handler500)
     
+@login_required
+def complete_order(request,id):
+    order = Order.objects.get(id=id)
+    order.status = "completed"
+    order.save()
+    return redirect('orders')
 
-
+@login_required
 def place_order(request):
     if request.method == "POST":
         data = json.loads(request.body)

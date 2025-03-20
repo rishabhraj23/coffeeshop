@@ -49,6 +49,9 @@
                         </td>
                         <td><strong>$ {{ order.total_price }}</strong></td>
                         <td><div class="text-end mb-3">
+                            {% if user.is_superuser %}
+                            <a href="{% url 'complete_order' order.id %}" class="btn btn-success">Complete Order</a>
+                            {% endif %}
                             <a href="{% url 'cancel_order' order.id %}" class="btn btn-success">Cancel Order</a>
                         </div></td>
                     </tr>

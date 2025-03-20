@@ -25,10 +25,11 @@
     </div>
     <br>
     <br>
-
+    {% if user.is_superuser %}
     <div class="text-end mb-3">
         <a href="{% url 'add_coffee' %}" class="btn btn-success">Add Coffee</a>
     </div>
+    {% endif %}
 
 
 
@@ -38,6 +39,12 @@
             {% for coffee in coffees %}
             <div class="col-md-4 mb-4">
                 <div class="card shadow-lg rounded-3 text-center p-3">
+                    {% if user.is_superuser %}
+                    <div class="text-end mb-3">
+                        <a href="{% url 'coffee_form_add_update' coffee.id %}" class="btn btn-success">Update Coffee</a>
+                        <a href="{% url 'delete_coffee' coffee.id %}" class="btn btn-success">Delete Coffee</a>
+                    </div>
+                    {% endif %}
                     <img src="/{{ coffee.image }}" class="card-img-top mx-auto d-block"
                         style="height: 180px; width: auto; object-fit: cover; border-radius: 10px;"
                         alt="{{ coffee.name }}">
@@ -45,6 +52,7 @@
                         <h5 class="card-title fw-bold">{{ coffee.name }}</h5>
                         <p class="card-text text-muted">{{ coffee.description|truncatewords:15 }}</p>
                         <p class="text-dark fs-5"><strong>Cost:</strong> ${{ coffee.cost }}</p>
+                        {% if user.is_authenticated %}
                         <div class="d-flex justify-content-center align-items-center">
                             <label for="qty-{{ coffee.id }}" class="me-2 fw-semibold">Quantity:</label>
                             <input type="number" id="qty-{{ coffee.id }}" class="form-control w-25 text-center"
@@ -54,6 +62,7 @@
                             onclick="addToCart({{ coffee.id }}, '{{ coffee.name }}', {{ coffee.cost }})">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
