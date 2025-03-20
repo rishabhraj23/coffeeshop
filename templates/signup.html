@@ -1,0 +1,42 @@
+{% extends '_partials/base.html' %}
+
+{% block title %}
+<title>Coffee Shop - Login</title>
+{% endblock %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block body %}
+
+<div class="container">
+  <div class="row justify-content-center">
+      <h2 class="text-uppercase text-center mb-5">Create an account</h2>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">Sign Up</div>
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %}
+
+            {% for field in u_form.visible_fields %}
+                  <div class="form-outline mb-4">
+                      <label class="form-label" for="id_username">{{ field.label_tag }}</label>
+                      {% render_field field class="form-control" attr="required autofocus" %}
+                      {% if field.help_text %}
+                      {{ field.errors }}
+                      <small class="form-text text-muted">{{ field.help_text }}</small>
+                      {% endif %}
+                  </div>
+                  {% endfor %}
+
+        
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

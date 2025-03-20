@@ -1,0 +1,54 @@
+{% extends '_partials/base.html' %}
+
+{% block title %}
+<title>Coffee Shop - Login</title>
+{% endblock %}
+
+{% load static %}
+
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Login</div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">UserName</label>
+                            <input class="form-control"
+                                placeholder="Enter a Username" name="email" required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" placeholder="Enter password"
+                                name="password" required autofocus>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <!-- Checkbox -->
+                            <div class="form-check mb-0">
+                                <input class="form-check-input me-2" type="checkbox" value="" id="rememberme" />
+                                <label class="form-check-label" for="rememberme">
+                                    Remember me
+                                </label>
+                            </div>
+                            <a href="#!" class="text-body">Forgot password?</a>
+                        </div>
+                        <div class="container text-center text-lg-start mt-4 pt-2">
+                            <a href="{% url 'login' %}" class="link-danger"><button type="submit"
+                                    class="btn btn-primary btn-lg"
+                                    style="padding-left: 2.5rem; padding-right: 2.5rem;">Login</button></a>
+                            <p class="small fw-bold mt-2 pt-1 mb-0">Don't have an account? <a
+                                    href="{% url 'register' %}" class="link-danger">Register</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
