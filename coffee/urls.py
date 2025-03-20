@@ -13,9 +13,11 @@ urlpatterns = [
     path('coffee', views.coffee, name='coffee'),
     path('orders', views.orders, name='orders'),
     path('history', views.history, name='history'),
-    # path('book/<int:id>', views.book, name='book'),
-    # path('booking_confirm/<int:id>', views.booking_confirm, name='booking_confirm'),
-    # path('delete_bookings/<int:id>', views.delete_bookings, name='delete_bookings'),
-    # path('update_bookings/<int:id>', views.update_bookings, name='update_bookings'),
-    # path('order_history', views.order_history, name='order_history'),
+    # path('add_coffee', views.add_coffee, name='add_coffee'),
+    path('coffee_form_add_update/', views.coffee_form_add_update, name='add_coffee'),
+    path('coffee_form_add_update/<int:id>', views.coffee_form_add_update, name='coffee_form_add_update'),
+    path('delete_coffee/<int:id>', views.delete_coffee, name='delete_coffee'),
+    path("place_order", views.place_order, name="place_order"),
+    path("cancel_order/<int:id>", views.cancel_order, name="cancel_order"),
+
 ]

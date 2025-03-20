@@ -10,8 +10,137 @@
 
 
 <div class="container">
+
+    <div id="cart-section" class="container mt-4" style="max-width: 400px; display: none;">
+        <h2 class="text-center">🛒 Your Cart</h2>
+
+        <div id="message-box" class="container mt-3" style="display: none;"></div>
+
+        <div class="card p-4 shadow-sm">
+            <ul id="cart-items" class="list-group mb-3"></ul>
+            <h5 class="text-end">Total: <span id="total-cost">$0.00</span></h5>
+            <button class="btn btn-danger w-100" onclick="clearCart()">Clear Cart</button>
+            <button class="btn btn-success w-100 mt-2" onclick="checkout()">Checkout</button>
+        </div>
+    </div>
     <br>
-    <h1>Coffee</h1>
+    <br>
+
+    <div class="text-end mb-3">
+        <a href="{% url 'add_coffee' %}" class="btn btn-success">Add Coffee</a>
+    </div>
+
+
+
+    <div class="container mt-5">
+        <h2 class="text-center">☕ Coffee Menu</h2>
+        <div class="row">
+            {% for coffee in coffees %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-lg rounded-3 text-center p-3">
+                    <img src="/{{ coffee.image }}" class="card-img-top mx-auto d-block"
+                        style="height: 180px; width: auto; object-fit: cover; border-radius: 10px;"
+                        alt="{{ coffee.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ coffee.name }}</h5>
+                        <p class="card-text text-muted">{{ coffee.description|truncatewords:15 }}</p>
+                        <p class="text-dark fs-5"><strong>Cost:</strong> ${{ coffee.cost }}</p>
+                        <div class="d-flex justify-content-center align-items-center">
+                            <label for="qty-{{ coffee.id }}" class="me-2 fw-semibold">Quantity:</label>
+                            <input type="number" id="qty-{{ coffee.id }}" class="form-control w-25 text-center"
+                                value="1" min="1">
+                        </div>
+                        <button class="btn btn-primary mt-3 w-100"
+                            onclick="addToCart({{ coffee.id }}, '{{ coffee.name }}', {{ coffee.cost }})">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+
+        function addToCart(id, name, cost) {
+            let quantity = parseInt(document.getElementById(`qty-${id}`).value);
+            let existingItem = cart.find(item => item.id === id);
+
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({ id, name, cost, quantity });
+            }
+
+            updateCart();
+        }
+
+        function updateCart() {
+            let cartContent = document.getElementById("cart-items");
+            cartContent.innerHTML = "";
+            let total = 0;
+
+            cart.forEach(item => {
+                total += item.cost * item.quantity;
+                cartContent.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${item.quantity} x ${item.name} 
+                    <span>$${(item.cost * item.quantity).toFixed(2)}</span>
+                    <button class="btn btn-sm btn-danger" onclick="removeFromCart(${item.id})">❌</button>
+                </li>`;
+            });
+
+            document.getElementById("total-cost").innerText = `$${total.toFixed(2)}`;
+            document.getElementById("cart-section").style.display = cart.length > 0 ? "block" : "none";
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            updateCart();
+        }
+
+        function checkout() {
+            fetch('/place_order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ cart })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage(data.message, "success");
+                        clearCart();
+                    } else {
+                        showMessage(data.message, "danger");
+                    }
+                })
+                .catch(error => {
+                    showMessage("Something went wrong. Please try again.", "danger");
+                });
+        }
+
+        // Function to display messages
+        function showMessage(message, type) {
+            let messageBox = document.getElementById("message-box");
+            messageBox.innerHTML = `<div class="alert alert-${type} text-center">${message}</div>`;
+            messageBox.style.display = "block";
+
+            // Auto-hide the message after 3 seconds
+            setTimeout(() => {
+                messageBox.style.display = "none";
+            }, 3000);
+        }
+
+    </script>
+
+
 </div>
 
 {% endblock %}

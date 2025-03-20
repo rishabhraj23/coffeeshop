@@ -5,7 +5,11 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods, require_safe
 from django.conf.urls import handler500
-from .forms import SignUpForm, UserEditForm
+from .forms import SignUpForm, UserEditForm, CoffeeForm
+from .models import Coffee, Order, OrderItem
+import json
+from django.http import JsonResponse
+
 
 # Create your views here.
 @require_safe
@@ -16,16 +20,23 @@ def home(request):
 def aboutus(request):
     return render(request, 'aboutus.html')
 
-def coffee(request):
-    return render(request, 'coffee.html')
 
 @login_required
 def orders(request):
-    return render(request, 'orders.html')
+    orders = Order.objects.filter(user=request.user,status="pending").order_by("-created_at")
+    return render(request, 'orders.html', {"orders": orders})
 
 @login_required
 def history(request):
-    return render(request, 'history.html')
+    orders = Order.objects.filter(user=request.user).exclude(status="pending").order_by("-created_at")
+    return render(request, 'history.html',  {"orders": orders})
+
+def cancel_order(request, id):
+    order = Order.objects.get(id=id, user=request.user)
+    order.status = "canceled"
+    order.save()
+    return redirect('orders')
+
 
 @require_http_methods(["GET","POST"])
 def login_user(request):
@@ -92,3 +103,79 @@ def user_details(request):
             return render(request, 'user_details.html', {"u_form": user_form})
     except Exception:
         return redirect(handler500)
+
+
+
+
+def coffee(request):
+    if request.method == 'GET':
+        coffee = Coffee.objects.all()
+        return render(request, 'coffee.html', {"coffees": coffee})
+    if request.method == 'POST':
+        return render(request, 'coffee.html')
+    return render(request, 'coffee.html')
+
+def add_coffee(request):
+    return render(request, 'add_coffee.html')
+
+
+def coffee_form_add_update(request, id=0):
+    try:
+        if request.method == 'GET':
+            if id == 0:
+                m_form = CoffeeForm()
+            else:
+                coffee = Coffee.objects.get(id=id)
+                m_form = CoffeeForm(instance=coffee)
+            return render(request, 'coffee_form.html', {'m_form': m_form})
+        if request.method == 'POST':
+            if id==0:
+                m_form = CoffeeForm(request.POST, request.FILES)
+            else:
+                coffee = Coffee.objects.get(id=id)
+                m_form = CoffeeForm(request.POST, instance=coffee)
+            if m_form.is_valid():
+                m_form.save()
+            else:
+                for field in m_form.errors:
+                    m_form[field].field.widget.attrs['class'] += ' error'
+                return render(request, 'coffee_form.html', {'m_form': m_form})
+            return redirect('coffee')
+        return render(request, 'add_coffee.html')
+    except Exception:
+        return redirect(handler500)
+    
+
+
+def delete_coffee(request, id):
+    try:
+        if request.method == 'GET':
+            meal = Coffee.objects.get(id=id)
+            meal.delete()
+            return render(request, 'coffee.html')
+        if request.method == 'POST':
+            return render(request, 'coffee.html')
+    except Exception:
+        return redirect(handler500)
+    
+
+
+def place_order(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        cart = data.get("cart", [])
+        print(cart)
+        order = Order.objects.create(user=request.user)
+
+        for item in cart:
+            print(item)
+            print(item["id"])
+            coffee = Coffee.objects.get(id=item["id"])
+            OrderItem.objects.create(order=order, coffee=coffee, quantity=item["quantity"])
+
+        return JsonResponse({"message": "Order placed successfully!"})
+
+    return JsonResponse({"message": "Invalid request"}, status=400)
+
+
+    

@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from .models import Coffee
 
 
 class SignUpForm(forms.ModelForm):
@@ -29,4 +30,16 @@ class UserEditForm(forms.ModelForm):
             "first_name": "First Name",
             "last_name": "Last Name",
             "email": "Email Id",
+        }
+
+
+class CoffeeForm(forms.ModelForm):
+    class Meta:
+        model = Coffee
+        fields = ("name", "description", "cost", "image")
+        labels = {
+            "name": "Coffee Name",
+            "description": "Description",
+            "cost": "Amount",
+            "image": "Image",
         }
