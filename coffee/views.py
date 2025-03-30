@@ -155,7 +155,8 @@ def coffee_form_add_update(request, id=0):
                 return render(request, 'coffee_form.html', {'m_form': m_form})
             return redirect('coffee')
         return render(request, 'add_coffee.html')
-    except Exception:
+    except Exception as e:
+        print(e)
         return redirect(handler500)
     
 
