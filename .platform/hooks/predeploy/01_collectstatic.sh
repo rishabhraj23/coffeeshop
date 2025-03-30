@@ -1,5 +1,9 @@
 #!/bin/bash
-# Run collectstatic to gather static files for production
+# Activate the virtual environment
 source /var/app/venv/*/bin/activate
+
+# Navigate to the application directory
 cd /var/app/current
+
+# Run collectstatic without input prompt
 python3 manage.py collectstatic --noinput
