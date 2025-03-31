@@ -8,7 +8,10 @@ from django.conf.urls import handler500
 from .forms import SignUpForm, UserEditForm, CoffeeForm
 from .models import Coffee, Order, OrderItem
 import json
+import requests
+from django.contrib import messages
 from django.http import JsonResponse
+from library.email_lib import send_email_notification
 
 
 # Create your views here.
@@ -43,11 +46,36 @@ def history(request):
 
 @login_required
 def cancel_order(request, id):
-    order = Order.objects.get(id=id, user=request.user)
-    order.status = "canceled"
-    order.save()
-    return redirect('orders')
+    try:
+        # Get the order details
+        order = Order.objects.get(id=id)
+        
+        # Change order status to "canceled"
+        order.status = "canceled"
+        order.save()
 
+        # Call the send_email_notification function
+        email_response = send_email_notification(
+            recipient_email=order.user.email,
+            order_status="Canceled",
+            order_id=order.id
+        )
+
+        # Check the response from the email utility
+        if email_response["status"] == "success":
+            messages.success(request, "Order canceled successfully and notification sent.")
+        else:
+            messages.error(request, f"Failed to send notification email. Error: {email_response['message']}")
+
+    except Order.DoesNotExist:
+        # Error handling for when the order doesn't exist
+        messages.error(request, "Order not found.")
+    except Exception as e:
+        # Catch any other exceptions
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
+
+    # Redirect to the orders page after processing
+    return redirect('orders')
 
 @require_http_methods(["GET","POST"])
 def login_user(request):
@@ -174,9 +202,32 @@ def delete_coffee(request, id):
     
 @login_required
 def complete_order(request,id):
-    order = Order.objects.get(id=id)
-    order.status = "completed"
-    order.save()
+    try:
+        order = Order.objects.get(id=id)
+        order.status = "completed"
+        order.save()
+
+        # Call the send_email_notification function
+        email_response = send_email_notification(
+            recipient_email=order.user.email,
+            order_status="Canceled",
+            order_id=order.id
+        )
+
+        # Check the response from the email utility
+        if email_response["status"] == "success":
+            messages.success(request, "Order completed successfully and notification sent.")
+        else:
+            messages.error(request, f"Failed to send notification email. Error: {email_response['message']}")
+
+    except Order.DoesNotExist:
+        # Error handling for when the order doesn't exist
+        messages.error(request, "Order not found.")
+    except Exception as e:
+        # Catch any other exceptions
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
+
+    # Redirect to the orders page after processing
     return redirect('orders')
 
 @login_required
